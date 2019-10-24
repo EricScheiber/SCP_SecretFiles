@@ -6,7 +6,7 @@ public class DocCount : MonoBehaviour
 {
 
 
-    int DocFound = 0;
+    public static int DocFound = 0;
 
 
     void Update()

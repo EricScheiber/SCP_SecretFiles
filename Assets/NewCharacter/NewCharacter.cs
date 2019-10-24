@@ -15,7 +15,7 @@ public class NewCharacter : MonoBehaviour
     public float JumpHeight = 1.5f;
     public float CharacterHeight = 2, CharacterCrouchHeight = 1;
     public float GoToCrouchSpeed = 5;
-    public float CamHeight = .7f;
+    public float CamHeightFromGround = 1.7f;
     public float SlideTime = 1;
     public float MaxClimbHeight = 5, MaxDistanceWallRun = 10;
     [Range(0, 10)]
@@ -29,17 +29,20 @@ public class NewCharacter : MonoBehaviour
     private Vector3 move;
     private float verticalSpeed;
     private float currentSpeed;
-    private float CamAngleX = 0;
-    private float CamAngleY = 0;
-    private float DesiredAngleCamY = 0;
-    private float JumpSpeed;
+    private float camAngleX = 0;
+    private float camAngleY = 0;
+    private float desiredAngleCamY = 0;
+    private float jumpSpeed;
     private float currentHeight;
     private float diffHeight;
     private Vector3 slideDirection;
     private float slideTimer = 0;
     private bool previouslyGrounded;
     private float countClimbHeight = 0, countDistanceWallRun = 0;
-    
+    private float camHeightFromCenter;
+    private float coefStand = 1;
+    private bool standUpSucess;
+
 
     //For setters
 
@@ -85,19 +88,26 @@ public class NewCharacter : MonoBehaviour
 
     public bool isCrouch
     {
-        get => _isCrouch;
+        get
+        {
+            return _isCrouch;
+
+        }
         private set
         {
-            _isCrouch = value;
-            if (_isCrouch)
+            
+            if (value)
             {
                 CrouchDown();
-                if(!isSliding) currentSpeed = CrouchSpeed;
+                if (!isSliding) currentSpeed = CrouchSpeed;
+                _isCrouch = true;
             }
             else
             {
-                StandUp();
-                if(!IsRunning) currentSpeed = WalkSpeed;
+                if (!standUpSucess)
+                    StandUp();
+                else
+                    _isCrouch = false;
             }
         }
     }
@@ -108,37 +118,51 @@ public class NewCharacter : MonoBehaviour
 
     void CrouchDown()
     {
+        standUpSucess = false;
         CancelInvoke("StandUp");
-        currentHeight -= GoToCrouchSpeed * Time.deltaTime;
+        coefStand -= GoToCrouchSpeed * Time.deltaTime;
 
-        if (currentHeight > CharacterCrouchHeight)
+        if (coefStand > 0)
         {
             Invoke("CrouchDown", Time.deltaTime);
         }
         else
         {
-            currentHeight = CharacterCrouchHeight;
+            coefStand = 0;
         }
-        controller.height = currentHeight;
-        cam.transform.localPosition = -Vector3.up * CamHeight * ((CharacterHeight - currentHeight - CharacterCrouchHeight) / diffHeight);
+
+        controller.height = (1 - coefStand) * CharacterCrouchHeight + coefStand * CharacterHeight;
+        cam.transform.localPosition = Vector3.up * camHeightFromCenter * coefStand;
     }
 
     void StandUp()
     {
         CancelInvoke("CrouchDown");
 
-        currentHeight += GoToCrouchSpeed * Time.deltaTime;
+        int layerMask = ~LayerMask.GetMask("Player");
+        //Verifie qu'il n'y a rien au dessus du perso
+        if (Physics.Raycast(transform.position - Vector3.up * controller.height / 2, Vector3.up, CharacterHeight, layerMask))
+        {
+            Invoke("StandUp", Time.deltaTime);
+            return;
+        }
 
-        if (currentHeight < CharacterHeight)
+        coefStand += GoToCrouchSpeed * Time.deltaTime;
+
+        if (coefStand < 1)
         {
             Invoke("StandUp", Time.deltaTime);
         }
         else
         {
-            currentHeight = CharacterHeight;
+            coefStand = 1;
+            if (!IsRunning) currentSpeed = WalkSpeed;
+            standUpSucess = true;
+            isCrouch = false;
+            if (Input.GetButton("Run")) IsRunning = true;
         }
-        controller.height = currentHeight;
-        cam.transform.localPosition = -Vector3.up * CamHeight * ((CharacterHeight - currentHeight - CharacterCrouchHeight) / diffHeight);
+        controller.height = (1 - coefStand) * CharacterCrouchHeight + coefStand * CharacterHeight;
+        cam.transform.localPosition = Vector3.up * camHeightFromCenter * coefStand;
     }
 
 
@@ -160,10 +184,11 @@ public class NewCharacter : MonoBehaviour
         if (cam == null) Debug.LogError("Il n'y a pas de caméra attaché attaché au script NewCharacter en tant qu'enfant");
         else if (cam.transform == transform) Debug.Log("La caméra doit etre un enfant un enfant de l'objet joueur");
         currentSpeed = WalkSpeed;
-        JumpSpeed = Mathf.Sqrt(2 * Gravity * JumpHeight);
+        jumpSpeed = Mathf.Sqrt(2 * Gravity * JumpHeight);
         diffHeight = CharacterHeight - CharacterCrouchHeight;
-        cam.transform.localPosition = Vector3.up * CamHeight;
         currentHeight = CharacterHeight;
+        camHeightFromCenter = CamHeightFromGround - CharacterHeight / 2;
+        cam.transform.localPosition = Vector3.up * camHeightFromCenter;
     }
 
     // Update is called once per frame
@@ -185,11 +210,11 @@ public class NewCharacter : MonoBehaviour
         //Get on ground
         if (controller.isGrounded)
         {
-            DesiredAngleCamY = 0;
+            desiredAngleCamY = 0;
             previouslyGrounded = true;
             countDistanceWallRun = countClimbHeight = 0;
             verticalSpeed = 0;
-            if (Input.GetButton("Jump")) verticalSpeed = JumpSpeed;
+            if (Input.GetButton("Jump")) verticalSpeed = jumpSpeed;
         }
         else
             verticalSpeed -= Gravity * Time.deltaTime;
@@ -205,20 +230,20 @@ public class NewCharacter : MonoBehaviour
                 transform.eulerAngles += Vector3.up * CamSensibilty * Input.GetAxis("Mouse X");
 
                 // Up and down
-                CamAngleX -= CamSensibilty * Input.GetAxis("Mouse Y");
-                CamAngleX = Mathf.Clamp(CamAngleX, -CameraLimitAngle, CameraLimitAngle);
+                camAngleX -= CamSensibilty * Input.GetAxis("Mouse Y");
+                camAngleX = Mathf.Clamp(camAngleX, -CameraLimitAngle, CameraLimitAngle);
             }
 
-            
+
         }
 
         // Climb and WallRun
-        if(Input.GetButton("Run") && previouslyGrounded)
+        if (Input.GetButton("Run") && previouslyGrounded)
         {
             Vector3 PositionPied = transform.position - Vector3.up * (controller.height / 2 - .1f);
             //climb
             int layer_mask = LayerMask.GetMask("Wall");
-            if(Physics.Raycast(PositionPied, transform.forward,controller.radius+.1f,layer_mask))
+            if (Physics.Raycast(PositionPied, transform.forward, controller.radius + .1f, layer_mask))
             {
                 verticalSpeed = ClimbSpeed;
                 countClimbHeight += verticalSpeed * Time.deltaTime;
@@ -232,13 +257,13 @@ public class NewCharacter : MonoBehaviour
                 Vector3 hitPosition = hit.point;
                 if (Physics.Raycast(PositionPied + transform.forward * controller.radius, transform.right, out hit, controller.radius + .1f, layer_mask))
                 {
-                    DesiredAngleCamY = 10;
+                    desiredAngleCamY = 10;
                     move = (hit.point - hitPosition).normalized * RunSpeed * Time.deltaTime;
                     verticalSpeed = (MaxDistanceWallRun / 2 - countDistanceWallRun) / (MaxDistanceWallRun / 2) * CoefClimbDuringWallRun;
                     countDistanceWallRun += RunSpeed * Time.deltaTime;
                     if (countDistanceWallRun > MaxDistanceWallRun)
                     {
-                        DesiredAngleCamY = 0;
+                        desiredAngleCamY = 0;
                         previouslyGrounded = false;
                     }
                 }
@@ -249,31 +274,31 @@ public class NewCharacter : MonoBehaviour
                 Vector3 hitPosition = hit.point;
                 if (Physics.Raycast(PositionPied + transform.forward * controller.radius, -transform.right, out hit, controller.radius + .1f, layer_mask))
                 {
-                    DesiredAngleCamY = -10;
+                    desiredAngleCamY = -10;
                     move = (hit.point - hitPosition).normalized * RunSpeed * Time.deltaTime;
                     verticalSpeed = (MaxDistanceWallRun / 2 - countDistanceWallRun) / (MaxDistanceWallRun / 2) * CoefClimbDuringWallRun;
                     countDistanceWallRun += RunSpeed * Time.deltaTime;
                     if (countDistanceWallRun > MaxDistanceWallRun)
                     {
-                        DesiredAngleCamY = 0;
+                        desiredAngleCamY = 0;
                         previouslyGrounded = false;
-                    }                    
+                    }
                 }
             }
-            else DesiredAngleCamY = 0;
+            else desiredAngleCamY = 0;
         }
 
-        CamAngleY += (DesiredAngleCamY - CamAngleY) * Time.deltaTime * 5;
+        camAngleY += (desiredAngleCamY - camAngleY) * Time.deltaTime * 5;
 
         //Set angle camera
-        cam.transform.localEulerAngles = Vector3.right * CamAngleX + Vector3.forward * CamAngleY;
+        cam.transform.localEulerAngles = Vector3.right * camAngleX + Vector3.forward * camAngleY;
 
         if (isSliding)
         {
             slideTimer -= Time.deltaTime;
             if (!isSliding) isCrouch = false;
 
-            CamAngleX -= CamAngleX * Time.deltaTime * 5;
+            camAngleX -= camAngleX * Time.deltaTime * 5;
 
             controller.Move((slideDirection * RunSpeed + Vector3.up * verticalSpeed) * Time.deltaTime);
         }

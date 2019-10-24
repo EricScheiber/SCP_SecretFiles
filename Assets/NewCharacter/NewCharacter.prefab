@@ -11,7 +11,7 @@ GameObject:
   - component: {fileID: 7169855835350533381}
   - component: {fileID: 7169855835350533380}
   - component: {fileID: 7169855835350533383}
-  m_Layer: 0
+  m_Layer: 9
   m_Name: NewCharacter
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -74,7 +74,7 @@ MonoBehaviour:
   CharacterHeight: 2
   CharacterCrouchHeight: 0.9
   GoToCrouchSpeed: 5
-  CamHeight: 0.7
+  CamHeightFromGround: 1.7
   SlideTime: 1
   MaxClimbHeight: 5
   MaxDistanceWallRun: 10
@@ -90,7 +90,7 @@ GameObject:
   - component: {fileID: 7169855836334710318}
   - component: {fileID: 7169855836334710316}
   - component: {fileID: 7169855836334710319}
-  m_Layer: 0
+  m_Layer: 9
   m_Name: Camera
   m_TagString: Untagged
   m_Icon: {fileID: 0}

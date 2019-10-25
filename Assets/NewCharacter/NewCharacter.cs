@@ -219,7 +219,7 @@ public class NewCharacter : MonoBehaviour
         else
             verticalSpeed -= Gravity * Time.deltaTime;
 
-        if (IsRunning && !isSliding && Input.GetButtonDown("Crouch")) Slide();
+        if (IsRunning && !isSliding && Input.GetButtonDown("Crouch") && Input.GetAxisRaw("Vertical")>0) Slide();
 
         //Get CameraOrientation
         if (Time.timeScale > 0)//Si le jeu n'est pas sur pause

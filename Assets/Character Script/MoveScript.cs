@@ -109,7 +109,7 @@ public class MoveScript : MonoBehaviour {
 		// Boite de vitesse
 
 
-		if ((WalkMode == true) && (MoveMode == true))
+		if (WalkMode && MoveMode)
 			speed = WalkSpeed;
 
 		if ((CrouchMode == true) && (MoveMode == true))

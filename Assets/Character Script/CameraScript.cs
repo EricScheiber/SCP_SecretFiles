@@ -60,10 +60,10 @@ public class CameraScript : MonoBehaviour
 
 		} else if (axes == RotationAxis.MouseY) {
 
-			RotationX -= Input.GetAxis ("Mouse Y") * sensVertical;
+			RotationX -= Input.GetAxis ("Mouse Y") * sensVertical * Time.timeScale;
 			RotationX = Mathf.Clamp (RotationX, MinVert, MaxVert);
 
-			float RotationY = transform.localEulerAngles.y;
+			float RotationY = transform.localEulerAngles.y * Time.timeScale;
 
 			transform.localEulerAngles = new Vector3 (RotationX, RotationY, 0);
 

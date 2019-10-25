@@ -70,14 +70,14 @@ MonoBehaviour:
   CameraLimitAngle: 75
   Gravity: 14
   CamSensibilty: 3
-  JumpHeight: 1.5
+  JumpHeight: 1.3
   CharacterHeight: 2
   CharacterCrouchHeight: 0.9
   GoToCrouchSpeed: 5
   CamHeightFromGround: 1.7
   SlideTime: 1
-  MaxClimbHeight: 5
-  MaxDistanceWallRun: 10
+  MaxClimbHeight: 3
+  MaxDistanceWallRun: 7
   CoefClimbDuringWallRun: 3
 --- !u!1 &7169855836334710313
 GameObject:

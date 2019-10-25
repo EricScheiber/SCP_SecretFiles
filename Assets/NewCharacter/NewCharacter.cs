@@ -248,8 +248,9 @@ public class NewCharacter : MonoBehaviour
                 verticalSpeed = ClimbSpeed;
                 countClimbHeight += verticalSpeed * Time.deltaTime;
                 if (countClimbHeight > MaxClimbHeight) previouslyGrounded = false;
-            }
+                countDistanceWallRun = MaxDistanceWallRun + .1f;
 
+            }
             RaycastHit hit;
             //Wall Run Right
             if (Physics.Raycast(PositionPied, transform.right, out hit, controller.radius + .1f, layer_mask))
@@ -257,14 +258,17 @@ public class NewCharacter : MonoBehaviour
                 Vector3 hitPosition = hit.point;
                 if (Physics.Raycast(PositionPied + transform.forward * controller.radius, transform.right, out hit, controller.radius + .1f, layer_mask))
                 {
-                    desiredAngleCamY = 10;
-                    move = (hit.point - hitPosition).normalized * RunSpeed * Time.deltaTime;
-                    verticalSpeed = (MaxDistanceWallRun / 2 - countDistanceWallRun) / (MaxDistanceWallRun / 2) * CoefClimbDuringWallRun;
-                    countDistanceWallRun += RunSpeed * Time.deltaTime;
+                   
                     if (countDistanceWallRun > MaxDistanceWallRun)
                     {
                         desiredAngleCamY = 0;
                         previouslyGrounded = false;
+                    }else
+                    {
+                        desiredAngleCamY = 10;
+                        move = (hit.point - hitPosition).normalized * RunSpeed * Time.deltaTime;
+                        verticalSpeed = (MaxDistanceWallRun / 2 - countDistanceWallRun) / (MaxDistanceWallRun / 2) * CoefClimbDuringWallRun;
+                        countDistanceWallRun += RunSpeed * Time.deltaTime;
                     }
                 }
             }
@@ -274,14 +278,18 @@ public class NewCharacter : MonoBehaviour
                 Vector3 hitPosition = hit.point;
                 if (Physics.Raycast(PositionPied + transform.forward * controller.radius, -transform.right, out hit, controller.radius + .1f, layer_mask))
                 {
-                    desiredAngleCamY = -10;
-                    move = (hit.point - hitPosition).normalized * RunSpeed * Time.deltaTime;
-                    verticalSpeed = (MaxDistanceWallRun / 2 - countDistanceWallRun) / (MaxDistanceWallRun / 2) * CoefClimbDuringWallRun;
-                    countDistanceWallRun += RunSpeed * Time.deltaTime;
+                    
                     if (countDistanceWallRun > MaxDistanceWallRun)
                     {
                         desiredAngleCamY = 0;
                         previouslyGrounded = false;
+                    }
+                    else
+                    {
+                        desiredAngleCamY = -10;
+                        move = (hit.point - hitPosition).normalized * RunSpeed * Time.deltaTime;
+                        verticalSpeed = (MaxDistanceWallRun / 2 - countDistanceWallRun) / (MaxDistanceWallRun / 2) * CoefClimbDuringWallRun;
+                        countDistanceWallRun += RunSpeed * Time.deltaTime;
                     }
                 }
             }

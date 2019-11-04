@@ -195,8 +195,8 @@ public class NewCharacter : MonoBehaviour
     void Update()
     {
         //Get Move
-        move = (transform.forward * Input.GetAxisRaw("Vertical") +
-            transform.right * Input.GetAxisRaw("Horizontal")).normalized * currentSpeed * Time.deltaTime;
+            move = (transform.forward * Input.GetAxisRaw("Vertical") +
+              transform.right * Input.GetAxisRaw("Horizontal")).normalized * currentSpeed * Time.deltaTime;
 
         //Courir
         if (Input.GetButtonDown("Run") && !isCrouch) IsRunning = true;

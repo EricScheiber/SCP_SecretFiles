@@ -42,6 +42,7 @@ public class NewCharacter : MonoBehaviour
     private float camHeightFromCenter;
     private float coefStand = 1;
     private bool standUpSucess;
+    private bool OnGroundPreviousFrame = true;
 
 
     //For setters
@@ -199,7 +200,7 @@ public class NewCharacter : MonoBehaviour
               transform.right * Input.GetAxisRaw("Horizontal")).normalized * currentSpeed * Time.deltaTime;
 
         //Courir
-        if (Input.GetButtonDown("Run") && !isCrouch) IsRunning = true;
+        if (Input.GetButtonDown("Run") && !isCrouch && (OnGroundPreviousFrame || controller.isGrounded)) IsRunning = true;
         if (Input.GetButtonUp("Run")) IsRunning = false;
 
 
@@ -207,15 +208,21 @@ public class NewCharacter : MonoBehaviour
         if (Input.GetButtonDown("Crouch") && !IsRunning) isCrouch = true;
         if (Input.GetButtonUp("Crouch") && !isSliding) isCrouch = false;
 
-        //Get on ground
+        //Get on ground     
         if (controller.isGrounded)
         {
             desiredAngleCamY = 0;
+            
             previouslyGrounded = true;
             countDistanceWallRun = countClimbHeight = 0;
             verticalSpeed = 0;
-            if (Input.GetButton("Jump")) verticalSpeed = jumpSpeed;
-        }
+            if (Input.GetButton("Jump"))
+            {
+                verticalSpeed = jumpSpeed;
+                
+            }
+
+            }
         else
             verticalSpeed -= Gravity * Time.deltaTime;
 
@@ -312,5 +319,7 @@ public class NewCharacter : MonoBehaviour
         }
         else
             controller.Move(move + Vector3.up * verticalSpeed * Time.deltaTime);
+
+        OnGroundPreviousFrame = controller.isGrounded;
     }
 }
